@@ -8,17 +8,17 @@ import paramiko as ssh
 from .filesystem import FakeFile
 from .filesystem import FakeFilesystem
 
-HOME = "/"
+HOME = '/'
 
 FILES = FakeFilesystem({
-    "/file.txt": "contents",
-    "/file2.txt": "contents2",
-    "/folder/file3.txt": "contents3",
-    "/empty_folder": None,
-    "/tree/file1.txt": "x",
-    "/tree/file2.txt": "y",
-    "/tree/subfolder/file3.txt": "z",
-    "/etc/apache2/apache2.conf": "Include other.conf",
+    '/file.txt': 'contents',
+    '/file2.txt': 'contents2',
+    '/folder/file3.txt': 'contents3',
+    '/empty_folder': None,
+    '/tree/file1.txt': 'x',
+    '/tree/file2.txt': 'y',
+    '/tree/subfolder/file3.txt': 'z',
+    '/etc/apache2/apache2.conf': 'Include other.conf',
     HOME: None,  # So $HOME is a directory
 })
 
@@ -67,7 +67,7 @@ def expand(path):
     'relative/path' => ('relative', 'path')
     """
     # Base case
-    if path in ["", os.sep]:
+    if path in ['', os.sep]:
         return [path]
 
     ret = PrependList()
@@ -79,7 +79,7 @@ def expand(path):
 
     ret.prepend(filename)
     # Handle absolute vs relative paths
-    ret.prepend(directory if directory == os.sep else "")
+    ret.prepend(directory if directory == os.sep else '')
 
     return ret
 
@@ -184,7 +184,7 @@ class FakeSFTPServerInterface(ssh.SFTPServerInterface):
                 if os.path.dirname(path) not in self.files:
                     return ssh.sftp.SFTP_NO_SUCH_FILE
 
-                self.files[path] = fobj = FakeFile("", path)
+                self.files[path] = fobj = FakeFile('', path)
             # No write flag means a read, which means they tried to read a
             # nonexistent file.
             else:
@@ -217,8 +217,8 @@ class FakeSFTPServerInterface(ssh.SFTPServerInterface):
         # Attempt to gracefully update instead of overwrite, since things like
         # chmod will call us with an SFTPAttributes object that only exhibits
         # e.g. st_mode, and we don't want to lose our filename or size...
-        for which in "size uid gid mode atime mtime".split():
-            attname = "st_" + which
+        for which in 'size uid gid mode atime mtime'.split():
+            attname = 'st_' + which
             incoming = getattr(attr, attname)
 
             if incoming is not None:

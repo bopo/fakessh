@@ -12,14 +12,14 @@ class FakeFile(StringIO):
         init = lambda x: StringIO.__init__(self, x)
 
         if value is None:
-            init("")
-            filetype, filesize = "dir", 4096
+            init('')
+            filetype, filesize = 'dir', 4096
         else:
             init(value)
-            filetype, filesize = "file", len(value)
+            filetype, filesize = 'file', len(value)
 
         attr = paramiko.SFTPAttributes()
-        attr.st_mode = {"file": stat.S_IFREG, "dir": stat.S_IFDIR}[filetype]
+        attr.st_mode = {'file': stat.S_IFREG, 'dir': stat.S_IFDIR}[filetype]
 
         attr.st_size = filesize
         attr.filename = Path(path).name
@@ -34,7 +34,7 @@ class FakeFile(StringIO):
         # if six.PY3 is True and isinstance(value, bytes):
         #     value = value.decode('utf-8')
 
-        value = value.decode("utf-8")
+        value = value.decode('utf-8')
         StringIO.write(self, value)
 
         self.attributes.st_size = len(self.getvalue())

@@ -1,13 +1,18 @@
 import logging
 import os
-from errno import EACCES, EDQUOT, ENOENT, ENOTDIR, EPERM, EROFS
+from errno import EACCES
+from errno import EDQUOT
+from errno import ENOENT
+from errno import ENOTDIR
+from errno import EPERM
+from errno import EROFS
 from typing import Callable
 
 import paramiko
 from loguru import logger
 
 __all__ = [
-    "SFTPServer",
+    'SFTPServer',
 ]
 
 # LOG = logging.getLogger(__name__)
@@ -41,7 +46,7 @@ def returns_sftp_error(func: Callable) -> Callable:
         try:
             return func(*args, **kwargs)
         except OSError as err:
-            logger.debug("Error calling %s(%s, %s): %s", func, args, kwargs, err, exc_info=True)
+            logger.debug('Error calling %s(%s, %s): %s', func, args, kwargs, err, exc_info=True)
             errno = err.errno
 
             if errno in {EACCES, EDQUOT, EPERM, EROFS}:
@@ -52,7 +57,7 @@ def returns_sftp_error(func: Callable) -> Callable:
 
             return paramiko.sftp.SFTP_FAILURE
         except Exception as err:
-            logger.debug("Error calling %s(%s, %s): %s", func, args, kwargs, err, exc_info=True)
+            logger.debug('Error calling %s(%s, %s): %s', func, args, kwargs, err, exc_info=True)
             return paramiko.sftp.SFTP_FAILURE
 
     return wrapped
@@ -73,18 +78,18 @@ class SFTPServerInterface(paramiko.SFTPServerInterface):
     @returns_sftp_error
     def open(self, path, flags, attr):
         fd = os.open(path, flags)
-        self.log.debug("open(%s): fd: %d", path, fd)
+        self.log.debug('open(%s): fd: %d', path, fd)
 
         if flags & (os.O_WRONLY | os.O_RDWR):
-            mode = "w"
+            mode = 'w'
         elif flags & os.O_APPEND:
-            mode = "a"
+            mode = 'a'
         else:
-            mode = "r"
+            mode = 'r'
 
-        mode += "b"
+        mode += 'b'
 
-        self.log.debug("open(%s): Mode: %s", path, mode)
+        self.log.debug('open(%s): Mode: %s', path, mode)
         return SFTPHandle(os.fdopen(fd, mode), flags)
 
     @returns_sftp_error
@@ -117,7 +122,7 @@ class SFTPServerInterface(paramiko.SFTPServerInterface):
 
     @returns_sftp_error
     def mkdir(self, path, attrs):
-        mode = getattr(attrs, "st_mode", 0o777)
+        mode = getattr(attrs, 'st_mode', 0o777)
 
         try:
             os.mkdir(path, mode)

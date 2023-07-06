@@ -1,6 +1,4 @@
 import os
-# import socket
-# import socket
 import threading
 from queue import Queue
 from typing import Dict
@@ -11,11 +9,13 @@ import paramiko
 
 from .command import CommandHandler
 from .fakesftp import FakeSFTPServerInterface
+# import socket
+# import socket
 
 # from .sftp import SFTPServer
 
 ChannelID = int
-_SERVER_KEY = os.path.join(os.path.dirname(__file__), "server_key")
+_SERVER_KEY = os.path.join(os.path.dirname(__file__), 'server_key')
 _logger = logbook.Logger(__name__)
 
 
@@ -39,7 +39,7 @@ class ConnectionHandler(paramiko.ServerInterface):
             channel: paramiko.Channel = self.transport.accept()
 
             if channel is None:
-                _logger.debug("Closing session")
+                _logger.debug('Closing session')
                 break
 
             if channel.chanid not in self.command_queues:
@@ -52,21 +52,21 @@ class ConnectionHandler(paramiko.ServerInterface):
     def _handle_client(self, channel: paramiko.Channel) -> None:
         try:
             command = self.command_queues[channel.chanid].get(block=True)
-            _logger.debug(f"Channel {channel.chanid}, executing {command}")
+            _logger.debug(f'Channel {channel.chanid}, executing {command}')
             command_result = self._command_handler(command.decode())
             channel.sendall(command_result.stdout.encode())
             channel.sendall_stderr(command_result.stderr.encode())
             channel.send_exit_status(command_result.returncode)
         except Exception:  # pylint: disable=broad-except # noqa
-            _logger.exception(f"Error handling client (channel: {channel})")
+            _logger.exception(f'Error handling client (channel: {channel})')
         finally:
             try:
                 channel.close()
             except EOFError:
-                _logger.debug("Tried to close already closed channel")
+                _logger.debug('Tried to close already closed channel')
 
     def get_allowed_auths(self, username: str) -> str:
-        return "password,publickey"
+        return 'password,publickey'
 
     def check_auth_publickey(self, username: str, key: paramiko.PKey) -> int:
         return paramiko.common.AUTH_SUCCESSFUL
@@ -79,7 +79,7 @@ class ConnectionHandler(paramiko.ServerInterface):
         return True
 
     def check_channel_request(self, kind: str, chanid: ChannelID) -> int:
-        if kind == "session":
+        if kind == 'session':
             return paramiko.common.OPEN_SUCCEEDED
 
         return paramiko.common.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
