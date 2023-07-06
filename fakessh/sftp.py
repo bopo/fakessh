@@ -4,12 +4,13 @@ from errno import EACCES, EDQUOT, ENOENT, ENOTDIR, EPERM, EROFS
 from typing import Callable
 
 import paramiko
+from loguru import logger
 
 __all__ = [
     "SFTPServer",
 ]
 
-LOG = logging.getLogger(__name__)
+# LOG = logging.getLogger(__name__)
 
 
 # https://docs.paramiko.org/en/stable/api/sftp.html
@@ -40,7 +41,7 @@ def returns_sftp_error(func: Callable) -> Callable:
         try:
             return func(*args, **kwargs)
         except OSError as err:
-            LOG.debug("Error calling %s(%s, %s): %s", func, args, kwargs, err, exc_info=True)
+            logger.debug("Error calling %s(%s, %s): %s", func, args, kwargs, err, exc_info=True)
             errno = err.errno
 
             if errno in {EACCES, EDQUOT, EPERM, EROFS}:
@@ -51,7 +52,7 @@ def returns_sftp_error(func: Callable) -> Callable:
 
             return paramiko.sftp.SFTP_FAILURE
         except Exception as err:
-            LOG.debug("Error calling %s(%s, %s): %s", func, args, kwargs, err, exc_info=True)
+            logger.debug("Error calling %s(%s, %s): %s", func, args, kwargs, err, exc_info=True)
             return paramiko.sftp.SFTP_FAILURE
 
     return wrapped

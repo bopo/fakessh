@@ -1,13 +1,13 @@
-import sys
-
-from logbook import StreamHandler
-
 from .server import Server
 
 
 def main():
-    StreamHandler(sys.stdout).push_application()
-    Server(command_handler=lambda c: c, port=5050).run_blocking()
+    server = Server(command_handler=lambda c: c, port=5050)
+
+    try:
+        server.run_blocking()
+    except KeyboardInterrupt:
+        server.close()
 
 
 if __name__ == "__main__":

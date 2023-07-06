@@ -1,5 +1,6 @@
 import os
-import socket
+# import socket
+# import socket
 import threading
 from queue import Queue
 from typing import Dict
@@ -9,7 +10,9 @@ import logbook
 import paramiko
 
 from .command import CommandHandler
-from .sftp import SFTPServer
+from .fakesftp import FakeSFTPServerInterface
+
+# from .sftp import SFTPServer
 
 ChannelID = int
 _SERVER_KEY = os.path.join(os.path.dirname(__file__), "server_key")
@@ -17,14 +20,18 @@ _logger = logbook.Logger(__name__)
 
 
 class ConnectionHandler(paramiko.ServerInterface):
-    def __init__(self, client_conn: socket, command_handler: CommandHandler):
+    def __init__(self, client_conn, command_handler: CommandHandler):
         self._command_handler: CommandHandler = command_handler
         self.thread: Optional[threading.Thread] = None
         self.command_queues: Dict[ChannelID, Queue] = {}
 
         self.transport: paramiko.Transport = paramiko.Transport(client_conn)
         self.transport.add_server_key(paramiko.RSAKey(filename=_SERVER_KEY))
-        self.transport.set_subsystem_handler("sftp", SFTPServer)
+
+        # self.transport.set_subsystem_handler("sftp", SFTPServer)
+        self.transport.set_subsystem_handler('sftp', paramiko.SFTPServer, sftp_si=FakeSFTPServerInterface)
+
+        self.event = threading.Event()
 
     def run(self) -> None:
         self.transport.start_server(server=self)
@@ -58,6 +65,9 @@ class ConnectionHandler(paramiko.ServerInterface):
             except EOFError:
                 _logger.debug("Tried to close already closed channel")
 
+    def get_allowed_auths(self, username: str) -> str:
+        return "password,publickey"
+
     def check_auth_publickey(self, username: str, key: paramiko.PKey) -> int:
         return paramiko.common.AUTH_SUCCESSFUL
 
@@ -71,7 +81,12 @@ class ConnectionHandler(paramiko.ServerInterface):
     def check_channel_request(self, kind: str, chanid: ChannelID) -> int:
         if kind == "session":
             return paramiko.common.OPEN_SUCCEEDED
+
         return paramiko.common.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
-    def get_allowed_auths(self, username: str) -> str:
-        return "password,publickey"
+    # def check_channel_pty_request(self, *args):
+    #     return True
+    #
+    # def check_channel_shell_request(self, channel):
+    #     self.event.set()
+    #     return True

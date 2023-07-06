@@ -22,7 +22,7 @@ class Server:
         self._socket: Optional[socket.SocketIO] = None
         self._thread: Optional[threading.Thread] = None
 
-        self.host: str = host
+        self._host: str = host
         self._port: int = port
 
         self._command_handler: CommandHandlerWrapped = command_handler_wrapper(command_handler)
@@ -38,10 +38,10 @@ class Server:
 
     def _create_socket(self) -> None:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._socket.bind((self.host, self._port))
+        self._socket.bind((self._host, self._port))
         self._socket.listen(5)
 
-        _logger.info(f"Starting ssh server on {self.host}:{self.port}")
+        _logger.info(f"Starting ssh server on {self._host}:{self.port}")
 
     def run_blocking(self) -> None:
         self._create_socket()
@@ -92,6 +92,10 @@ class Server:
         if self._thread is not None:
             self._thread.join()
             self._thread = None
+
+    @property
+    def host(self) -> str:
+        return self._host
 
     @property
     def port(self) -> int:

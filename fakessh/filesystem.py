@@ -2,28 +2,28 @@ import os
 import stat
 from filecmp import cmp
 from io import StringIO
+from pathlib import Path
 
 import paramiko
 
 
 class FakeFile(StringIO):
     def __init__(self, value=None, path=None):
-        init = lambda x: StringIO.__init__(self, x)  # noqa
+        init = lambda x: StringIO.__init__(self, x)
 
         if value is None:
-            StringIO("")
-            ftype = "dir"
-            size = 4096
+            init("")
+            filetype, filesize = "dir", 4096
         else:
-            StringIO(value)
-            ftype = "file"
-            size = len(value)
+            init(value)
+            filetype, filesize = "file", len(value)
 
         attr = paramiko.SFTPAttributes()
-        attr.st_mode = {"file": stat.S_IFREG, "dir": stat.S_IFDIR}[ftype]
+        attr.st_mode = {"file": stat.S_IFREG, "dir": stat.S_IFDIR}[filetype]
 
-        attr.st_size = size
-        attr.filename = os.path.basename(path)
+        attr.st_size = filesize
+        attr.filename = Path(path).name
+        # attr.filename = os.path.basename(path)
 
         self.attributes = attr
 
@@ -54,6 +54,7 @@ class FakeFilesystem(dict):
     def __init__(self, d=None):
         # Replicate input dictionary using our custom __setitem__
         super().__init__()
+
         d = d or {}
 
         for key, value in d.items():
@@ -75,10 +76,10 @@ class FakeFilesystem(dict):
         I expect real servers do this as well but with the user's home
         directory.
         """
-        if not path.startswith(os.path.sep):
-            path = os.path.join(os.path.sep, path)
+        if not path.startswith(os.sep):
+            path = Path(os.sep, path)
 
-        return path
+        return str(path)
 
     def __getitem__(self, key):
         return super().__getitem__(self.normalize(key))
