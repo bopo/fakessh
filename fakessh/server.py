@@ -11,7 +11,7 @@ from loguru import logger
 from .command import command_handler_wrapper
 from .command import CommandHandler
 from .command import CommandHandlerWrapped
-from .connection_handler import ConnectionHandler
+from .handlers import ConnectionHandler
 from .utils import suppress
 
 _logger = logger
